@@ -1,24 +1,33 @@
 package unmeshjoshi
 
-class ActorCell(clazz:Class[_], val dispatcher:Dispatcher) {
-  private val mailBox = new MailBox(new UnboundedMessageQueue())
-  mailBox.setActor(this)
+// TODO: become/unbecome
+// TODO: sender()
 
-  val receive: PartialFunction[Any, Unit] = clazz.newInstance().asInstanceOf[Actor].receive
+// Associate actor behavior, the dispatcher and the mailbox
+class ActorCell(clazz: Class[_], val dispatcher: Dispatcher) {
+  private val _mailbox = new Mailbox(new UnboundedMessageQueue())
+  _mailbox.setActor(this)
 
+  private val receive: Actor.Receive =
+    clazz.getDeclaredConstructor().newInstance().asInstanceOf[Actor].receive
 
-  def mailbox = mailBox
-
-  def receiveMessage(messageHandle: Envelope) = {
+  private def receiveMessage(messageHandle: Envelope): Unit = {
     receive(messageHandle.message)
   }
 
-  def invoke(messageHandle: Envelope) = {
+  def mailbox: Mailbox = _mailbox
+
+  /**
+    * Receive message
+    */
+  def invoke(messageHandle: Envelope): Unit = {
     receiveMessage(messageHandle)
   }
 
-
-  def sendMessage(message:Any) = {
-    dispatcher.dispatch(this, new Envelope(message))
+  /**
+    * Send message
+    */
+  def sendMessage(message: Any): Unit = {
+    dispatcher.dispatch(this, Envelope(message))
   }
 }

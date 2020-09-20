@@ -5,62 +5,57 @@ import java.util.concurrent.{ConcurrentLinkedQueue, ForkJoinTask}
 import scala.annotation.tailrec
 
 trait MessageQueue {
-  def enqueue(receiver: ActorCell, handle: Envelope): Unit // NOTE: receiver is used only in two places, but cannot be removed
+  def enqueue(handle: Envelope): Unit
+
   def dequeue(): Envelope
 
   def numberOfMessages: Int
 
   def hasMessages: Boolean
 
-  def cleanUp(owner: ActorCell, deadLetters: MessageQueue): Unit
+  def cleanUp(deadLetters: MessageQueue): Unit
 }
 
-class UnboundedMessageQueue extends ConcurrentLinkedQueue[Envelope] with MessageQueue {
-  def queue = this
+class UnboundedMessageQueue
+    extends ConcurrentLinkedQueue[Envelope]
+    with MessageQueue {
 
-  override def enqueue(receiver: ActorCell, handle: Envelope): Unit = {
-    queue add handle
-    //    println(numberOfMessages)
-  }
+  override def enqueue(handle: Envelope): Unit =
+    offer(handle)
 
-  override def dequeue(): Envelope = queue.poll()
+  override def dequeue(): Envelope = poll()
 
-  def numberOfMessages = queue.size
+  override def numberOfMessages: Int = size
 
-  def hasMessages = !queue.isEmpty
+  override def hasMessages: Boolean = !isEmpty
 
-  def cleanUp(owner: ActorCell, deadLetters: MessageQueue): Unit = {
-    if (hasMessages) {
-      var envelope = dequeue
-      while (envelope ne null) {
-        deadLetters.enqueue(owner, envelope)
-        envelope = dequeue
-      }
+  def cleanUp(deadLetters: MessageQueue): Unit = {
+    while (hasMessages) {
+      deadLetters.enqueue(dequeue())
     }
   }
 }
 
-class MailBox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
+// A Mailbox is an executable Task
+class Mailbox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
   private var idle = true
 
-  def isIdle = idle
   /**
-   * Using synchronied to simplify things. In the real Akka actors code,
-   * its highly optimized by using atomic compare and swap instruction
-   */
+    * Using synchronized to simplify things. In the real Akka actors code,
+    * it's highly optimized by using atomic compare and swap instruction
+    */
   def setAsScheduled(): Boolean = {
     this.synchronized {
       if (idle) {
         idle = false
         true
-      }
-      else {
+      } else {
         false
       }
     }
   }
 
-  def setAsIdle():Boolean = {
+  def setAsIdle(): Boolean = {
     this.synchronized {
       if (!idle) {
         idle = true
@@ -71,7 +66,7 @@ class MailBox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
     }
   }
 
-  def canBeScheduled() = {
+  def canBeScheduled: Boolean = {
     messageQueue.hasMessages
   }
 
@@ -83,36 +78,30 @@ class MailBox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
 
   val shouldProcessMessage: Boolean = true
 
-  /**
-   * Enqueue messages in message queue
-   * @param receiver
-   * @param msg
-   */
-  def enqueue(receiver: ActorCell, msg: Envelope): Unit = messageQueue.enqueue(receiver, msg)
+  def enqueue(msg: Envelope): Unit =
+    messageQueue.enqueue(msg)
 
-  /**
-   * Try to dequeue the next message from this queue, return null failing that.
-   */
   def dequeue(): Envelope = messageQueue.dequeue()
 
+  // Execute the mailbox when it is scheduled
+  // mini batch defined by throughput deadline
   @tailrec private final def processMailbox(
-                                             left: Int = java.lang.Math.max(dispatcher.throughput, 1),
-                                             deadlineNs: Long = if (dispatcher.isThroughputDeadlineTimeDefined == true) System.nanoTime + dispatcher.throughputDeadlineTime.toNanos else 0L): Unit =
+      left: Int = dispatcher.throughput.max(1),
+      deadlineNs: Long =
+        if (dispatcher.isThroughputDeadlineTimeDefined)
+          System.nanoTime + dispatcher.throughputDeadlineTime.toNanos
+        else 0L): Unit =
     if (shouldProcessMessage) {
       val next = dequeue()
-      //      println(s"Dequeueing and processing messages ${next}")
       if (next ne null) {
-
-        //        println(s" There are ${messageQueue.numberOfMessages} messages")
-        //        println(" processing message " + next)
-
-        actor invoke next
+        actor.invoke(next)
 
         if (Thread.interrupted())
-          throw new InterruptedException("Interrupted while processing actor messages")
+          throw new InterruptedException(
+            "Interrupted while processing actor messages")
 
-        if ((left > 1) && ((dispatcher.isThroughputDeadlineTimeDefined == false) || (System.nanoTime - deadlineNs) < 0)) //FIXME
-        processMailbox(left - 1, deadlineNs)
+        if ((left > 1) && (!dispatcher.isThroughputDeadlineTimeDefined || (System.nanoTime - deadlineNs) < 0))
+          processMailbox(left - 1, deadlineNs)
       }
     }
 
@@ -120,14 +109,15 @@ class MailBox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
     processMailbox()
   }
 
-  override def exec() = {
+  override def exec(): Boolean = {
     try {
       run()
+      // this is critical to tell forkjoinpool that the task is not completed.
+      false
     } finally {
-      setAsIdle
-      dispatcher.registerForExecution(this, false, false)
+      setAsIdle()
+      dispatcher.registerForExecution(this)
     }
-    false //this is critical to tell forkjoinpool that the task is not completed.
   }
 
   override def getRawResult: Unit = {}
@@ -135,4 +125,6 @@ class MailBox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
   override def setRawResult(value: Unit): Unit = {}
 }
 
-final case class Envelope(val message: Any /*, val sender: ActorCell*/)
+// TODO: sender ActorRef
+
+final case class Envelope(message: Any)

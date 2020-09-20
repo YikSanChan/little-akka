@@ -5,22 +5,28 @@ import java.util.concurrent.ForkJoinPool
 import scala.concurrent.duration._
 
 class Dispatcher(val executorService: ForkJoinPool) {
-  val throughputDeadlineTime: Duration = Duration.Zero
+  final val throughputDeadlineTime: Duration = 10.millis
 
-  val isThroughputDeadlineTimeDefined = true
+  final val isThroughputDeadlineTimeDefined = throughputDeadlineTime.toMillis > 0
 
-  val throughput: Int = 10
+  final val throughput: Int = 10
 
-  def dispatch(receiver: ActorCell, invocation: Envelope) = {
-    val mbox = receiver.mailbox
-    mbox.enqueue(receiver, invocation)
-    registerForExecution(mbox, true, false)
+  /**
+    * Queue the message and schedule the mailbox for execution
+    */
+  def dispatch(receiver: ActorCell, invocation: Envelope): Unit = {
+    val mailbox = receiver.mailbox
+    mailbox.enqueue(invocation)
+    registerForExecution(mailbox)
   }
 
-  def registerForExecution(mbox: MailBox, hasMessageHint: Boolean, hasSystemMessageHint: Boolean) = {
-    if (mbox.canBeScheduled() && mbox.isIdle) {
-      if (mbox.setAsScheduled()) {
-        executorService execute mbox
+  /**
+    * Suggest to register the provided mailbox for execution
+    */
+  def registerForExecution(mailbox: Mailbox): Unit = {
+    if (mailbox.canBeScheduled) {
+      if (mailbox.setAsScheduled()) {
+        executorService.execute(mailbox)
       }
     }
   }
