@@ -30,14 +30,17 @@ class UnboundedMessageQueue
   override def hasMessages: Boolean = !isEmpty
 
   def cleanUp(deadLetters: MessageQueue): Unit = {
-    while (hasMessages) {
-      deadLetters.enqueue(dequeue())
+    var envelope = dequeue()
+    while (envelope ne null) {
+      deadLetters.enqueue(envelope)
+      envelope = dequeue()
     }
   }
 }
 
 // A Mailbox is an executable Task
 class Mailbox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
+  // TODO: Use AtomicBoolean and compareAndSet
   private var idle = true
 
   /**

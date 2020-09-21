@@ -2,8 +2,6 @@ package unmeshjoshi
 
 import java.util.concurrent.TimeUnit
 
-import unmeshjoshi.Actor.Receive
-
 import scala.concurrent.{ExecutionContext, Future}
 
 class SimpleActor extends Actor {

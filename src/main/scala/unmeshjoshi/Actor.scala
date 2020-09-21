@@ -5,5 +5,6 @@ object Actor {
 }
 
 trait Actor {
-  def receive: Actor.Receive
+  type Receive = Actor.Receive
+  def receive: Receive
 }
