@@ -4,6 +4,9 @@ import java.util.concurrent.ForkJoinPool
 
 import scala.concurrent.duration._
 
+// This dispatcher is backed by a thread pool,
+// pick an actor and assign it a dormant thread from it’s pool
+// TODO: understand why fork-join over thread-pool?
 class Dispatcher(val executorService: ForkJoinPool) {
   final val throughputDeadlineTime: Duration = 10.millis
 
