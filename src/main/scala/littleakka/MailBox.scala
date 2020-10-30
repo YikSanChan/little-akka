@@ -125,9 +125,9 @@ class Mailbox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
     }
   }
 
-  override def getRawResult: Unit = {}
+  override def getRawResult: Unit = ()
 
-  override def setRawResult(value: Unit): Unit = {}
+  override def setRawResult(value: Unit): Unit = ()
 }
 
 // TODO: sender ActorRef
