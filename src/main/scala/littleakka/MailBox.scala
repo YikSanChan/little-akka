@@ -1,5 +1,6 @@
 package littleakka
 
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ConcurrentLinkedQueue, ForkJoinTask}
 
 import com.typesafe.scalalogging.StrictLogging
@@ -45,33 +46,20 @@ class Mailbox(val messageQueue: MessageQueue)
     extends ForkJoinTask[Unit]
     with StrictLogging {
 
-  // TODO: atomic boolean
   // Mailbox status is simplified to either scheduled or idle
-  private var idle = true
+  private val idle = new AtomicBoolean(true)
 
   /** Using synchronized to simplify things. In the real Akka actors code,
     * it's highly optimized by using atomic compare and swap instruction
     */
   def setAsScheduled(): Boolean = {
-    this.synchronized {
-      if (idle) {
-        idle = false
-        true
-      } else {
-        false
-      }
-    }
+    // if set success, then the new value is false, not idle means scheduled
+    idle.compareAndSet(true, false)
   }
 
   def setAsIdle(): Boolean = {
-    this.synchronized {
-      if (!idle) {
-        idle = true
-        true
-      } else {
-        false
-      }
-    }
+    // if set success, then the new value is false, hence idle
+    idle.compareAndSet(false, true)
   }
 
   def canBeScheduled: Boolean = {
