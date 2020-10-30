@@ -1,4 +1,4 @@
-package unmeshjoshi
+package littleakka
 
 trait ActorRef {
   def !(message: Any)

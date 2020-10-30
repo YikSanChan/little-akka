@@ -1,4 +1,4 @@
-package unmeshjoshi
+package littleakka
 
 object Actor {
   type Receive = PartialFunction[Any, Unit]
