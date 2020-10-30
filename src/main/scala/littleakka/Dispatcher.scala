@@ -7,11 +7,9 @@ import scala.concurrent.duration._
 // This dispatcher is backed by a thread pool,
 // pick an actor and assign it a dormant thread from it’s pool
 class Dispatcher(val executorService: ForkJoinPool) {
-  final val throughputDeadlineTime: Duration = 10.millis
 
-  final val isThroughputDeadlineTimeDefined =
-    throughputDeadlineTime.toMillis > 0
-
+  // Throughput defines the number of messages that are processed in a batch
+  // before the thread is returned to the pool. Set to 1 for as fair as possible.
   final val throughput: Int = 10
 
   /** Queue the message and schedule the mailbox for execution

@@ -91,11 +91,7 @@ class Mailbox(val messageQueue: MessageQueue)
   // Execute the mailbox when it is scheduled
   // mini batch defined by throughput deadline
   @tailrec private final def processMailbox(
-      left: Int = dispatcher.throughput.max(1),
-      deadlineNs: Long =
-        if (dispatcher.isThroughputDeadlineTimeDefined)
-          System.nanoTime + dispatcher.throughputDeadlineTime.toNanos
-        else 0L
+      left: Int = dispatcher.throughput.max(1)
   ): Unit =
     if (shouldProcessMessage) {
       val next = dequeue()
@@ -108,10 +104,8 @@ class Mailbox(val messageQueue: MessageQueue)
             "Interrupted while processing actor messages"
           )
 
-        if (
-          (left > 1) && (!dispatcher.isThroughputDeadlineTimeDefined || (System.nanoTime - deadlineNs) < 0)
-        )
-          processMailbox(left - 1, deadlineNs)
+        if (left > 1)
+          processMailbox(left - 1)
       }
     }
 
