@@ -7,6 +7,7 @@ import com.typesafe.scalalogging.StrictLogging
 import scala.annotation.tailrec
 
 trait MessageQueue {
+
   def enqueue(handle: Envelope): Unit
 
   def dequeue(): Envelope
@@ -98,12 +99,6 @@ class Mailbox(val messageQueue: MessageQueue)
       if (next ne null) {
         logger.debug("processing message {}", next)
         actor.invoke(next)
-
-        if (Thread.interrupted())
-          throw new InterruptedException(
-            "Interrupted while processing actor messages"
-          )
-
         if (left > 1)
           processMailbox(left - 1)
       }
