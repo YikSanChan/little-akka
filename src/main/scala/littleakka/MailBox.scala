@@ -84,9 +84,6 @@ class Mailbox(val messageQueue: MessageQueue)
 
   def dispatcher: Dispatcher = actor.dispatcher
 
-  // TODO: depends on status
-  val shouldProcessMessage: Boolean = idle
-
   def enqueue(msg: Envelope): Unit =
     messageQueue.enqueue(msg)
 
@@ -96,16 +93,15 @@ class Mailbox(val messageQueue: MessageQueue)
   // mini batch defined by throughput deadline
   @tailrec private final def processMailbox(
       left: Int = dispatcher.throughput.max(1)
-  ): Unit =
-    if (shouldProcessMessage) {
-      val next = dequeue()
-      if (next ne null) {
-        logger.debug("processing message {}", next)
-        actor.invoke(next)
-        if (left > 1)
-          processMailbox(left - 1)
-      }
+  ): Unit = {
+    val next = dequeue()
+    if (next ne null) {
+      logger.debug("processing message {}", next)
+      actor.invoke(next)
+      if (left > 1)
+        processMailbox(left - 1)
     }
+  }
 
   final def run(): Unit = {
     processMailbox()
