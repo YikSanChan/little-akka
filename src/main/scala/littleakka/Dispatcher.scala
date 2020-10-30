@@ -9,12 +9,12 @@ import scala.concurrent.duration._
 class Dispatcher(val executorService: ForkJoinPool) {
   final val throughputDeadlineTime: Duration = 10.millis
 
-  final val isThroughputDeadlineTimeDefined = throughputDeadlineTime.toMillis > 0
+  final val isThroughputDeadlineTimeDefined =
+    throughputDeadlineTime.toMillis > 0
 
   final val throughput: Int = 10
 
-  /**
-    * Queue the message and schedule the mailbox for execution
+  /** Queue the message and schedule the mailbox for execution
     */
   def dispatch(receiver: ActorCell, invocation: Envelope): Unit = {
     val mailbox = receiver.mailbox()
@@ -22,8 +22,7 @@ class Dispatcher(val executorService: ForkJoinPool) {
     registerForExecution(mailbox)
   }
 
-  /**
-    * Suggest to register the provided mailbox for execution
+  /** Suggest to register the provided mailbox for execution
     */
   def registerForExecution(mailbox: Mailbox): Unit = {
     if (mailbox.canBeScheduled) {

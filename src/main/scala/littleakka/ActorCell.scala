@@ -18,15 +18,13 @@ class ActorCell(clazz: Class[_], val dispatcher: Dispatcher) {
 
   def mailbox(): Mailbox = _mailbox
 
-  /**
-    * Receive message
+  /** Receive message
     */
   def invoke(messageHandle: Envelope): Unit = {
     receiveMessage(messageHandle)
   }
 
-  /**
-    * Send message
+  /** Send message
     */
   def sendMessage(message: Any): Unit = {
     dispatcher.dispatch(this, Envelope(message))

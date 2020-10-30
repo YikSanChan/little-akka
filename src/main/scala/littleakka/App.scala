@@ -5,9 +5,8 @@ import java.util.concurrent.TimeUnit
 import scala.concurrent.{ExecutionContext, Future}
 
 class SimpleActor extends Actor {
-  override def receive: Receive = {
-    case msg ⇒
-      println(s"Received $msg")
+  override def receive: Receive = { case msg ⇒
+    println(s"Received $msg")
   }
 }
 

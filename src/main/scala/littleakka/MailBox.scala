@@ -42,8 +42,7 @@ class Mailbox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
 
   private var idle = true
 
-  /**
-    * Using synchronized to simplify things. In the real Akka actors code,
+  /** Using synchronized to simplify things. In the real Akka actors code,
     * it's highly optimized by using atomic compare and swap instruction
     */
   def setAsScheduled(): Boolean = {
@@ -92,7 +91,8 @@ class Mailbox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
       deadlineNs: Long =
         if (dispatcher.isThroughputDeadlineTimeDefined)
           System.nanoTime + dispatcher.throughputDeadlineTime.toNanos
-        else 0L): Unit =
+        else 0L
+  ): Unit =
     if (shouldProcessMessage) {
       val next = dequeue()
       if (next ne null) {
@@ -100,9 +100,12 @@ class Mailbox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
 
         if (Thread.interrupted())
           throw new InterruptedException(
-            "Interrupted while processing actor messages")
+            "Interrupted while processing actor messages"
+          )
 
-        if ((left > 1) && (!dispatcher.isThroughputDeadlineTimeDefined || (System.nanoTime - deadlineNs) < 0))
+        if (
+          (left > 1) && (!dispatcher.isThroughputDeadlineTimeDefined || (System.nanoTime - deadlineNs) < 0)
+        )
           processMailbox(left - 1, deadlineNs)
       }
     }
