@@ -49,9 +49,6 @@ class Mailbox(val messageQueue: MessageQueue)
   // Mailbox status is simplified to either scheduled or idle
   private val idle = new AtomicBoolean(true)
 
-  /** Using synchronized to simplify things. In the real Akka actors code,
-    * it's highly optimized by using atomic compare and swap instruction
-    */
   def setAsScheduled(): Boolean = {
     // if set success, then the new value is false, not idle means scheduled
     idle.compareAndSet(true, false)
@@ -72,8 +69,10 @@ class Mailbox(val messageQueue: MessageQueue)
 
   def dispatcher: Dispatcher = actor.dispatcher
 
-  def enqueue(msg: Envelope): Unit =
+  def enqueue(msg: Envelope): Unit = {
+    logger.debug("enqueuing message {}", msg)
     messageQueue.enqueue(msg)
+  }
 
   def dequeue(): Envelope = messageQueue.dequeue()
 
@@ -82,6 +81,7 @@ class Mailbox(val messageQueue: MessageQueue)
   @tailrec private final def processMailbox(
       left: Int = dispatcher.throughput.max(1)
   ): Unit = {
+    logger.debug("mailbox size {}", messageQueue.numberOfMessages)
     val next = dequeue()
     if (next ne null) {
       logger.debug("processing message {}", next)

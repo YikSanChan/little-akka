@@ -20,6 +20,7 @@ object App {
     val actor = system.actorOf(classOf[SimpleActor])
     for (i <- 1 to 100) {
       Future {
+        Thread.sleep(10)
         actor ! s"Hello [$i]"
       }
     }
