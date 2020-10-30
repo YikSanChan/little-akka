@@ -5,6 +5,7 @@ package littleakka
 
 // Associate actor behavior, the dispatcher and the mailbox
 class ActorCell(clazz: Class[_], val dispatcher: Dispatcher) {
+
   private val _mailbox = new Mailbox(new UnboundedMessageQueue())
   _mailbox.setActor(this)
 
@@ -15,7 +16,7 @@ class ActorCell(clazz: Class[_], val dispatcher: Dispatcher) {
     receive(messageHandle.message)
   }
 
-  def mailbox: Mailbox = _mailbox
+  def mailbox(): Mailbox = _mailbox
 
   /**
     * Receive message

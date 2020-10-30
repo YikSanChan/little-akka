@@ -20,8 +20,7 @@ class UnboundedMessageQueue
     extends ConcurrentLinkedQueue[Envelope]
     with MessageQueue {
 
-  override def enqueue(handle: Envelope): Unit =
-    offer(handle)
+  override def enqueue(handle: Envelope): Unit = offer(handle)
 
   override def dequeue(): Envelope = poll()
 
@@ -40,7 +39,7 @@ class UnboundedMessageQueue
 
 // A Mailbox is an executable Task
 class Mailbox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
-  // TODO: Use AtomicBoolean and compareAndSet
+
   private var idle = true
 
   /**
