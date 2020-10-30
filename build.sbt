@@ -1,4 +1,4 @@
-name := "actor-minimal-impl"
+name := "little-akka"
 
 version := "0.1"
 
