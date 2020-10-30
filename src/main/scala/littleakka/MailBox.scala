@@ -45,6 +45,8 @@ class Mailbox(val messageQueue: MessageQueue)
     extends ForkJoinTask[Unit]
     with StrictLogging {
 
+  // TODO: atomic boolean
+  // Mailbox status is simplified to either scheduled or idle
   private var idle = true
 
   /** Using synchronized to simplify things. In the real Akka actors code,
@@ -82,7 +84,8 @@ class Mailbox(val messageQueue: MessageQueue)
 
   def dispatcher: Dispatcher = actor.dispatcher
 
-  val shouldProcessMessage: Boolean = true
+  // TODO: depends on status
+  val shouldProcessMessage: Boolean = idle
 
   def enqueue(msg: Envelope): Unit =
     messageQueue.enqueue(msg)
@@ -106,17 +109,14 @@ class Mailbox(val messageQueue: MessageQueue)
 
   final def run(): Unit = {
     processMailbox()
+    setAsIdle()
+    dispatcher.registerForExecution(this)
   }
 
   override def exec(): Boolean = {
-    try {
-      run()
-      // this is critical to tell forkjoinpool that the task is not completed.
-      false
-    } finally {
-      setAsIdle()
-      dispatcher.registerForExecution(this)
-    }
+    run()
+    // this is critical to tell forkjoinpool that the task is not completed.
+    false
   }
 
   override def getRawResult: Unit = ()
