@@ -2,6 +2,8 @@ package littleakka
 
 import java.util.concurrent.{ConcurrentLinkedQueue, ForkJoinTask}
 
+import com.typesafe.scalalogging.StrictLogging
+
 import scala.annotation.tailrec
 
 trait MessageQueue {
@@ -38,7 +40,9 @@ class UnboundedMessageQueue
 }
 
 // A Mailbox is an executable Task
-class Mailbox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
+class Mailbox(val messageQueue: MessageQueue)
+    extends ForkJoinTask[Unit]
+    with StrictLogging {
 
   private var idle = true
 
@@ -96,6 +100,7 @@ class Mailbox(val messageQueue: MessageQueue) extends ForkJoinTask[Unit] {
     if (shouldProcessMessage) {
       val next = dequeue()
       if (next ne null) {
+        logger.debug("processing message {}", next)
         actor.invoke(next)
 
         if (Thread.interrupted())
