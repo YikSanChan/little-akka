@@ -39,9 +39,9 @@ class ActorCell(val self: ActorRef, clazz: Class[_], val dispatcher: Dispatcher)
   private val _mailbox = new Mailbox(new UnboundedMessageQueue())
   _mailbox.setActor(this)
 
-  // In akka, enqueue Create to the mailbox, will later be processed in Mailbox#run
-  // before processing any custom message
-  // To simplify, simple create the actor here, refer to ActorCell#create
+  // In akka, it enqueues Create to the mailbox,
+  // the message will later be processed in Mailbox#run before any custom message
+  // To simplify, simply create the actor here, refer to ActorCell#create
   context.set(this)
 
   private var currentMessage: Envelope = _
@@ -61,16 +61,12 @@ class ActorCell(val self: ActorRef, clazz: Class[_], val dispatcher: Dispatcher)
 
   def mailbox(): Mailbox = _mailbox
 
-  /** Receive message
-    */
   def invoke(messageHandle: Envelope): Unit = {
     currentMessage = messageHandle
     receiveMessage(messageHandle)
     currentMessage = null
   }
 
-  /** Send message
-    */
   def sendMessage(message: Any, sender: ActorRef): Unit = {
     dispatcher.dispatch(this, Envelope(message, sender))
   }

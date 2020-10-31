@@ -29,6 +29,12 @@ object Reply {
     }
   }
 
+  // [LocalActorRef(pinger1)] Got StartPing from sender=null
+  // [LocalActorRef(pinger2)] Got StartPing from sender=null
+  // [LocalActorRef(ponger)] Got Ping from sender=LocalActorRef(pinger2)
+  // [LocalActorRef(ponger)] Got Ping from sender=LocalActorRef(pinger1)
+  // [LocalActorRef(pinger2)] Got Pong from sender=LocalActorRef(ponger)
+  // [LocalActorRef(pinger1)] Got Pong from sender=LocalActorRef(ponger)
   def main(args: Array[String]): Unit = {
     val system = new ActorSystem()
     val pinger1 = system.actorOf(classOf[Pinger], "pinger1")

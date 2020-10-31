@@ -2,7 +2,7 @@ package littleakka
 
 trait ActorRef {
 
-  /** Sends a one-way asynchronous message. E.g. fire-and-forget semantics.
+  /** Tell sends a one-way asynchronous message. E.g. fire-and-forget semantics.
     *
     * If invoked from within an actor then the actor reference is implicitly passed on
     * as the implicit 'sender' argument.
@@ -14,6 +14,8 @@ trait ActorRef {
   def name: String
 }
 
+/** A reasonable start, RemoteActorRef is far in the future
+  */
 class LocalActorRef(
     clazz: Class[_],
     val name: String,

@@ -14,8 +14,9 @@ trait Actor {
 
   def receive: Receive
 
-  implicit val context: ActorContext = ActorCell.context.get
+  val context: ActorContext = ActorCell.context.get
 
+  // implicit, so that ActorRef tell method uses the self ActorRef as sender
   implicit final val self: ActorRef = context.self
 
   final def sender(): ActorRef = context.sender()
