@@ -72,21 +72,21 @@ class Mailbox(val messageQueue: MessageQueue)
   def dispatcher: Dispatcher = actor.dispatcher
 
   def enqueue(msg: Envelope): Unit = {
-    logger.debug("enqueuing message {}", msg)
+    logger.debug("[{}] enqueuing message {}", actor.self, msg)
     messageQueue.enqueue(msg)
   }
 
   def dequeue(): Envelope = messageQueue.dequeue()
 
   // Execute the mailbox when it is scheduled
-  // mini batch defined by throughput deadline
+  // mini batch defined by throughput
   @tailrec private final def processMailbox(
       left: Int = dispatcher.throughput.max(1)
   ): Unit = {
-    logger.debug("mailbox size {}", messageQueue.numberOfMessages)
+    logger.debug("[{}] queue {}", actor.self, messageQueue)
     val next = dequeue()
     if (next ne null) {
-      logger.debug("processing message {}", next)
+      logger.debug("[{}] processing message {}", actor.self, next)
       actor.invoke(next)
       if (left > 1)
         processMailbox(left - 1)

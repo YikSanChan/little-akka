@@ -7,33 +7,33 @@ import java.util.concurrent.TimeUnit
 object Reply {
 
   private final case class StartPing(ponger: ActorRef)
-  private final case class Ping(name: String)
-  private final case class Pong(name: String)
+  private final case object Ping
+  private final case object Pong
 
   class Pinger extends Actor {
 
     override def receive: Receive = {
       case StartPing(ponger) =>
-        println("Start Ping")
-        ponger ! Ping("Pinger")
-      case Pong(name) =>
-        println(s"Got pong from $name, self=$self, sender=${sender()}")
+        println(s"[$self] Got StartPing from sender=${sender()}")
+        ponger ! Ping
+      case Pong =>
+        println(s"[$self] Got Pong from sender=${sender()}")
     }
   }
 
   class Ponger extends Actor {
 
-    override def receive: Receive = { case Ping(name) =>
-      println(s"Got ping from $name")
-      sender() ! Pong("Ponger")
+    override def receive: Receive = { case Ping =>
+      println(s"[$self] Got Ping from sender=${sender()}")
+      sender() ! Pong
     }
   }
 
   def main(args: Array[String]): Unit = {
     val system = new ActorSystem()
-    val pinger1 = system.actorOf(classOf[Pinger])
-    val pinger2 = system.actorOf(classOf[Pinger])
-    val ponger = system.actorOf(classOf[Ponger])
+    val pinger1 = system.actorOf(classOf[Pinger], "pinger1")
+    val pinger2 = system.actorOf(classOf[Pinger], "pinger2")
+    val ponger = system.actorOf(classOf[Ponger], "ponger")
     pinger1 ! StartPing(ponger)
     pinger2 ! StartPing(ponger)
     system.awaitTermination(1, TimeUnit.SECONDS)

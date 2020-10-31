@@ -14,7 +14,7 @@ class ActorSystem(
     dispatcher.executorService.awaitTermination(value, unit)
   }
 
-  def actorOf[T <: Actor: ClassTag](clazz: Class[T]): ActorRef = {
-    new LocalActorRef(clazz, dispatcher)
+  def actorOf[T <: Actor: ClassTag](clazz: Class[T], name: String): ActorRef = {
+    new LocalActorRef(clazz, name, dispatcher)
   }
 }

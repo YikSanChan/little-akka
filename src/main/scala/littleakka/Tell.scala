@@ -18,7 +18,7 @@ object Tell {
     implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.global
 
     val system = new ActorSystem()
-    val actor = system.actorOf(classOf[SimpleActor])
+    val actor = system.actorOf(classOf[SimpleActor], "simple")
 
     for (i <- 1 to 100) {
       Future {

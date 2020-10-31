@@ -10,12 +10,17 @@ trait ActorRef {
     * If not then no sender is available.
     */
   def !(message: Any)(implicit sender: ActorRef = Actor.noSender): Unit
+
+  def name: String
 }
 
-class LocalActorRef(clazz: Class[_], val dispatcher: Dispatcher)
-    extends ActorRef {
+class LocalActorRef(
+    clazz: Class[_],
+    val name: String,
+    val dispatcher: Dispatcher
+) extends ActorRef {
 
-  /** In akka, actorCell.init() is called the constructor,
+  /** In akka, actorCell.init() is called after the constructor,
     * which creates the mailbox, and creates the Actor instance.
     * To simplify, I move the init logic inside ActorCell constructor.
     */
@@ -24,4 +29,8 @@ class LocalActorRef(clazz: Class[_], val dispatcher: Dispatcher)
   override def !(message: Any)(implicit
       sender: ActorRef = Actor.noSender
   ): Unit = actorCell.sendMessage(message, sender)
+
+  /** Simplify debug
+    */
+  override def toString: String = s"LocalActorRef($name)"
 }
