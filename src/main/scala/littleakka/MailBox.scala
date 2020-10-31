@@ -7,6 +7,8 @@ import com.typesafe.scalalogging.StrictLogging
 
 import scala.annotation.tailrec
 
+final case class Envelope(message: Any, sender: ActorRef)
+
 trait MessageQueue {
 
   def enqueue(handle: Envelope): Unit
@@ -109,5 +111,3 @@ class Mailbox(val messageQueue: MessageQueue)
 
   override def setRawResult(value: Unit): Unit = ()
 }
-
-final case class Envelope(message: Any, sender: ActorRef)
