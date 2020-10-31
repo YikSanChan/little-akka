@@ -92,6 +92,8 @@ class Mailbox(val messageQueue: MessageQueue)
   }
 
   final def run(): Unit = {
+    // In akka, it will process system messages first
+    // To simplify, I haven't added system messages yet
     processMailbox()
     setAsIdle()
     dispatcher.registerForExecution(this)
@@ -108,6 +110,4 @@ class Mailbox(val messageQueue: MessageQueue)
   override def setRawResult(value: Unit): Unit = ()
 }
 
-// TODO: sender ActorRef
-
-final case class Envelope(message: Any)
+final case class Envelope(message: Any, sender: ActorRef)

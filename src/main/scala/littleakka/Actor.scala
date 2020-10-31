@@ -2,6 +2,11 @@ package littleakka
 
 object Actor {
   type Receive = PartialFunction[Any, Unit]
+
+  /** Default placeholder (null) used for "!" to indicate that there is no sender of the message,
+    * that will be translated to the receiving system's deadLetters.
+    */
+  final val noSender: ActorRef = null
 }
 
 trait Actor {
@@ -9,12 +14,9 @@ trait Actor {
 
   def receive: Receive
 
-  // TODO
-  // implicit val context: ActorContext = ActorCell.contextStack.get.head
+  implicit val context: ActorContext = ActorCell.context.get
 
-  // TODO
-  // implicit final val self: ActorRef = context.self //MUST BE A VAL, TRUST ME
+  implicit final val self: ActorRef = context.self
 
-  // TODO
-  // final def sender(): ActorRef = context.sender()
+  final def sender(): ActorRef = context.sender()
 }
