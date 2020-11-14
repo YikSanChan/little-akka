@@ -5,9 +5,7 @@ import java.util.concurrent.{ForkJoinPool, TimeUnit}
 import scala.reflect.ClassTag
 
 class ActorSystem(
-    val dispatcher: Dispatcher = new Dispatcher(
-      new ForkJoinPool(Runtime.getRuntime.availableProcessors)
-    )
+    val dispatcher: Dispatcher = new Dispatcher(new ForkJoinPool())
 ) {
 
   def awaitTermination(value: Int, unit: TimeUnit): Boolean = {
